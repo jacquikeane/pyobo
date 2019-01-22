@@ -110,3 +110,6 @@ ENV/
 # vagrant runtime stuff
 .vagrant
 ubuntu-*-cloudimg-console.log
+
+#IDEA
+.idea/
