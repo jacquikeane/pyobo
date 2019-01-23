@@ -24,7 +24,7 @@ setup(
     scripts=glob.glob('scripts/*'),
     test_suite='nose.collector',
     tests_require=['nose >= 1.3'],
-    install_requires=[],
+    install_requires=['ply >= 3.11'],
     license='GPLv3',
     classifiers=[
         'Development Status :: 4 - Beta',
