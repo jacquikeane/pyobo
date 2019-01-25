@@ -25,6 +25,8 @@ class OboDocumentBuilder:
 
     def tag_value_pair(self, tag, value):
         attribute = tag.replace("-", "_")
+        if attribute == "version":
+            attribute = "data_version"
         current_value = self.scope.__dict__.get(attribute)
         if current_value is None:
             self.scope.__dict__[attribute] = value

@@ -25,3 +25,10 @@ class TestDocBuilding(DocumentAsserter):
         expected = OboDocument()
         expected.header.hello = "world"
         self.assertDocumentEquals(under_test.document, expected)
+
+    def test_should_support_version_as_data_version(self):
+        under_test = OboDocumentBuilder()
+        under_test.tag_value_pair("version", "1.2")
+        expected = OboDocument()
+        expected.header.data_version = "1.2"
+        self.assertDocumentEquals(under_test.document, expected)
