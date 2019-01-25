@@ -18,4 +18,4 @@ class TestParser(unittest.TestCase):
                     call.tag_list_single(),
                     call.header_clause(),
                     call.obo_file()]
-        self.assertDictEqual(mock_callback.mock_calls, expected)
+        self.assertEquals(mock_callback.mock_calls, expected)
