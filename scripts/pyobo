@@ -1,35 +1,14 @@
 #!/usr/bin/env python3
 
-import argparse
-import sys
 
-import pkg_resources
+# todo Will eventually kill this script as pyobo will be a lib, rather than a tool
+
+import sys
 
 sys.path.append('../')
 sys.path.append('./')
-from pyobo.MYCLASS import MYCLASS
-from pyobo.InputTypes import InputTypes
 
+from pyobo.obo_reader import read
 
-def extract_version():
-    try:
-        return pkg_resources.get_distribution("pyobo").version
-    except pkg_resources.DistributionNotFound:
-        return 'x.y.z'
-
-
-def extract_command_line_options(version):
-    parser = argparse.ArgumentParser(
-        description='what Tim did next',
-        usage='pyobo [options]', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--foo', help='Example option foo', type=InputTypes.is_foo_valid)
-    parser.add_argument('--output_file', '-o', help='Output file [STDOUT]')
-    parser.add_argument('--verbose', '-v', action='store_true', help='Turn on debugging [%(default)s]', default=False)
-    parser.add_argument('--version', action='version', version=version)
-    return parser.parse_args()
-
-
-options = extract_command_line_options(str(extract_version()))
-
-thingy = MYCLASS(options)
-thingy.run()
+if __name__ == "__main__":
+    print(read((line for line in ["format-version: 1.2", "another-format-version: 1.3"])))
