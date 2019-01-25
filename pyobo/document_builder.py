@@ -24,4 +24,22 @@ class OboDocumentBuilder:
         print("tag_definition")
 
     def tag_value_pair(self, tag, value):
-        self.scope.__dict__[tag.replace("-", "_")] = value
+        attribute = tag.replace("-", "_")
+        current_value = self.scope.__dict__.get(attribute)
+        if current_value is None:
+            self.scope.__dict__[attribute] = value
+            return
+        if current_value != value:
+            raise OboDocumentBuildingError.invalidTagPairMerge(tag, current_value, value)
+
+
+class OboDocumentBuildingError(Exception):
+
+    @staticmethod
+    def invalidTagPairMerge(tag, current, new):
+        result = OboDocumentBuildingError()
+        result.message = "Tag %s defined more than once with different values (%s and %s)" % (tag, current, new)
+        return result
+
+    def __init__(self):
+        pass
