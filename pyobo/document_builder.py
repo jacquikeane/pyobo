@@ -47,7 +47,9 @@ class OboDocumentBuilder:
     def _extract_attribute(tag):
         attribute = tag.replace("-", "_")
         if attribute == "version":
-            attribute = "data_version"
+            return "data_version"
+        if attribute == "import":
+            return "import_"
         return attribute
 
 

@@ -15,9 +15,15 @@ def correct_tag_name(original):
 
 
 class OboLexerBuilder:
+    states = (
+        ('value', 'exclusive'),
+    )
+
     tokens = ['TAG', 'OBO_UNQUOTED_STRING']
 
     t_ignore = " \t\u0020\u0009"
+
+    t_value_ignore = " \t\u0020\u0009"
 
     def __init__(self):
         self.current_char_count = 0
@@ -27,18 +33,27 @@ class OboLexerBuilder:
         token.lexer.lineno += len(token.value)
         self.current_char_count = token.lexpos
 
+    def t_value_newline(self, token):
+        r"""\n+"""
+        self.t_newline(token)
+
     def t_TAG(self, token):
         r"""[a-zA-Z0-9_-]+:"""
+        token.lexer.begin('value')
         return correct_tag_name(token)
 
-    def t_OBO_UNQUOTED_STRING(self, token):
+    def t_value_OBO_UNQUOTED_STRING(self, token):
         r"""(?:(?:[^\\\r\n\u000A\u000C\u000D])|(?:\\[a-zA-Z]))+"""
+        token.lexer.begin('INITIAL')
         return token
 
     def t_error(self, token):
         print("Illegal character '%s' at line %s position %s" % (token.value[0], token.lineno,
                                                                  self.token_position(token)))
         token.lexer.skip(1)
+
+    def t_value_error(self, token):
+        self.t_error(token)
 
     def token_position(self, token):
         return token.lexpos - self.current_char_count

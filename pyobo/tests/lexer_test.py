@@ -29,6 +29,7 @@ class TestLexer(unittest.TestCase):
 
     def test_should_recognise_obo_strings(self):
         lexer = OboLexerBuilder().new_lexer();
+        lexer.begin("value")
         actual = OboLexerBuilder().tokenize(lexer, """It can contain any characters but new lines \u0145 \\a""")
         expected = [to_token(lexer, "OBO_UNQUOTED_STRING",
                              "It can contain any characters but new lines \u0145 \\a", 1, 0)]
@@ -44,10 +45,10 @@ class TestLexer(unittest.TestCase):
     def test_should_ignore_spaces_and_tab(self):
         lexer = OboLexerBuilder().new_lexer();
         actual = OboLexerBuilder().tokenize(lexer, """  a_valid_tag-AZ_8: \t"""
-                                            + """It can contain any characters but new lines \u0145 \\a""")
+                                            + """It can contain any characters \t but new lines \u0145 \\a""")
         expected = [
             to_token(lexer, "TAG", "a_valid_tag-AZ_8", 1, 2),
-            to_token(lexer, "OBO_UNQUOTED_STRING", "It can contain any characters but new lines \u0145 \\a", 1, 21)]
+            to_token(lexer, "OBO_UNQUOTED_STRING", "It can contain any characters \t but new lines \u0145 \\a", 1, 21)]
         self.assertEqualsByContent(actual, expected)
 
     def assertEqualsByContent(self, actual, expected):
