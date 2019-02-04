@@ -53,4 +53,4 @@ class TestLexer(unittest.TestCase):
     def assertEqualsByContent(self, actual, expected):
         actual_dict = extract_dictionary(actual)
         expected_dict = extract_dictionary(expected)
-        self.assertEqual(actual_dict, expected_dict)
+        self.assertEquals(actual_dict, expected_dict)
