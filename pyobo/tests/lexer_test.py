@@ -1,70 +1,17 @@
-import re
 import unittest
 
-import ply.lex as lex
 from ply.lex import LexToken
 
-
-class OBOLexerBuilder:
-    t_WhiteSpaceChar = "[ \t\u0020\u0009]"
-    # 9
-    # ws::= WhiteSpaceChar
-    # {WhiteSpaceChar}
-    # NewlineChar::= \r | \n | U + 000
-    # A | U + 000
-    # C | U + 000
-    # D
-    # nl::= [ws]
-    # NewLineChar
-    # nl *::= {nl}
-
-    tokens = ['NAME', 'WhiteSpaceChar']
-
-    t_NAME = r'[a-zA-Z_][a-zA-Z0-9_]*'
-
-    def __init__(self):
-        self.current_char_count = 0
-
-    def t_newline(self, token):
-        r"""\n+"""
-        token.lexer.lineno += len(token.value)
-        global current_char_count
-        self.current_char_count = token.lexpos
-
-    def t_error(self, token):
-        print("Illegal character '%s' at line %s position %s" % (token.value[0], token.lineno,
-                                                                 self.token_position(token)))
-        token.lexer.skip(1)
-
-    def token_position(self, token):
-        return token.lexpos - self.current_char_count
-
-    def new_lexer(self, **kwargs):
-        return lex.lex(module=self, reflags=re.UNICODE, **kwargs)
-
-    def new_generator(self, input):
-        lexer = self.new_lexer()
-        lexer.input(input)
-
-        def token_generator():
-            while True:
-                tok = lexer.token()
-                if not tok:
-                    break
-                yield tok
-
-        return token_generator()
+from pyobo.obo_lexer import OboLexerBuilder
 
 
-# test_modules_dir = os.path.dirname(os.path.realpath(__file__))
-# data_dir = os.path.join(test_modules_dir, 'data','read')
-
-def to_token(type, value, line, position):
+def to_token(lexer, type, value, line, position):
     token = LexToken()
     token.type = type
     token.value = value
     token.lineno = line
     token.lexpos = position
+    token.lexer = lexer
     return token
 
 
@@ -72,16 +19,35 @@ def extract_dictionary(list):
     return [x.__dict__ for x in list]
 
 
-class TestRead(unittest.TestCase):
+class TestLexer(unittest.TestCase):
 
-    def test_initialise(self):
-        token_generator = OBOLexerBuilder().new_generator(""" \u0020\u0009\t""")
-        expected = [to_token("WhiteSpaceChar", " ", 1, 0),
-                    to_token("WhiteSpaceChar", " ", 1, 1),
-                    to_token("WhiteSpaceChar", "\t", 1, 2),
-                    to_token("WhiteSpaceChar", "\t", 1, 3)
-                    ]
-        actual = list(token_generator)
+    def test_should_recognise_tags(self):
+        lexer = OboLexerBuilder().new_lexer();
+        actual = OboLexerBuilder().tokenize(lexer, """a_valid_tag-AZ_8:""")
+        expected = [to_token(lexer, "TAG", "a_valid_tag-AZ_8", 1, 0)]
+        self.assertEqualsByContent(actual, expected)
+
+    def test_should_recognise_obo_strings(self):
+        lexer = OboLexerBuilder().new_lexer();
+        actual = OboLexerBuilder().tokenize(lexer, """It can contain any characters but new lines \u0145 \\a""")
+        expected = [to_token(lexer, "OBO_UNQUOTED_STRING",
+                             "It can contain any characters but new lines \u0145 \\a", 1, 0)]
+        self.assertEqualsByContent(actual, expected)
+
+    def test_should_recognise_new_lines(self):
+        lexer = OboLexerBuilder().new_lexer();
+        actual = OboLexerBuilder().tokenize(lexer, """
+        a_valid_tag-AZ_8:""")
+        expected = [to_token(lexer, "TAG", "a_valid_tag-AZ_8", 2, 9)]
+        self.assertEqualsByContent(actual, expected)
+
+    def test_should_ignore_spaces_and_tab(self):
+        lexer = OboLexerBuilder().new_lexer();
+        actual = OboLexerBuilder().tokenize(lexer, """  a_valid_tag-AZ_8: \t"""
+                                            + """It can contain any characters but new lines \u0145 \\a""")
+        expected = [
+            to_token(lexer, "TAG", "a_valid_tag-AZ_8", 1, 2),
+            to_token(lexer, "OBO_UNQUOTED_STRING", "It can contain any characters but new lines \u0145 \\a", 1, 21)]
         self.assertEqualsByContent(actual, expected)
 
     def assertEqualsByContent(self, actual, expected):
