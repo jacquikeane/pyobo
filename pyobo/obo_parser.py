@@ -3,7 +3,7 @@ import ply.yacc as yacc
 from pyobo.obo_lexer import OboLexerBuilder
 
 
-# todo implement p_error, to siomply fail on error
+# todo implement p_error, to simply fail on error
 class OboParser:
     tokens = OboLexerBuilder.tokens
 

@@ -9,5 +9,5 @@ class TestReader(DocumentAsserter):
         actual = read((line for line in ["format-version: 1.2", "another-format-version: 1.3"]))
         expected = OboDocument()
         expected.header.format_version = "1.2"
-        expected.header.another_format_version = "1.3"
+        expected.header.another_format_version = ["1.3"]
         self.assertDocumentEquals(actual, expected)
