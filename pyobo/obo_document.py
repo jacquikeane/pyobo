@@ -42,24 +42,37 @@ class OboHeader(Base):
             self.__dict__[tvp] = None
         for tvp in header_mtvp:
             self.__dict__[tvp] = []
+        self._qualifiers = {}
+
+    def add_qualifiers(self, attribute, qualifiers):
+        self._qualifiers[attribute] = qualifiers
 
     def valid(self):
         return self.format_version is not None
 
 
-class OboTerm(Base):
+class OboStanza(Base):
 
     def __init__(self):
-        pass
+        self._qualifiers = {}
+
+    def add_qualifiers(self, attribute, qualifiers):
+        self._qualifiers[attribute] = qualifiers
 
     def valid(self):
         return True
 
 
-class OboTypedef(Base):
+class OboTerm(OboStanza):
 
     def __init__(self):
+        self._qualifiers = {}
         pass
 
-    def valid(self):
-        return True
+
+class OboTypedef(OboStanza):
+
+    def __init__(self):
+        self._qualifiers = {}
+        pass
+

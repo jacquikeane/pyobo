@@ -7,6 +7,7 @@ class OboDocumentBuilder:
     def __init__(self):
         self.document = OboDocument()
         self.scope = self.document.header
+        self.qualifiers = {}
 
     def term(self):
         self.scope = self.document.add_term()
@@ -18,6 +19,12 @@ class OboDocumentBuilder:
         attribute = OboDocumentBuilder._extract_attribute(tag)
         self._ensure_attribute_is_defined(attribute)
         self._set_attribute_value(tag, attribute, value)
+        if len(self.qualifiers) > 0:
+            self.scope.add_qualifiers(attribute, self.qualifiers)
+            self.qualifiers = {}
+
+    def qualifier(self, id, value):
+        self.qualifiers[id] = value
 
     def _set_attribute_value(self, tag, attribute, value):
         current_value = self.scope.__dict__.get(attribute)
