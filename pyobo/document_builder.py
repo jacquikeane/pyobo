@@ -8,20 +8,11 @@ class OboDocumentBuilder:
         self.document = OboDocument()
         self.scope = self.document.header
 
-    def obo_file(self):
-        print("obo_file")
+    def term(self):
+        self.scope = self.document.add_term()
 
-    def header_clause(self):
-        print("header_clause")
-
-    def tag_list_single(self):
-        print("p_tag_list_single")
-
-    def tag_list_multiple(self):
-        print("tag_list_multiple")
-
-    def tag_definition(self):
-        print("tag_definition")
+    def typedef(self):
+        self.scope = self.document.add_typedef()
 
     def tag_value_pair(self, tag, value):
         attribute = OboDocumentBuilder._extract_attribute(tag)

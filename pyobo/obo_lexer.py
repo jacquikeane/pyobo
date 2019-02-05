@@ -14,12 +14,22 @@ def correct_tag_name(original):
     return token
 
 
+def correct_stanza_name(original):
+    token = LexToken()
+    token.type = original.type
+    token.value = original.value[1:-1]
+    token.lineno = original.lineno
+    token.lexpos = original.lexpos
+    token.lexer = original.lexer
+    return token
+
+
 class OboLexerBuilder:
     states = (
         ('value', 'exclusive'),
     )
 
-    tokens = ['TAG', 'OBO_UNQUOTED_STRING']
+    tokens = ['TAG', 'OBO_UNQUOTED_STRING', 'TERM', 'TYPEDEF']
 
     t_ignore = " \t\u0020\u0009"
 
@@ -41,6 +51,14 @@ class OboLexerBuilder:
         r"""[a-zA-Z0-9_-]+:"""
         token.lexer.begin('value')
         return correct_tag_name(token)
+
+    def t_TYPEDEF(self, token):
+        r"""\[Typedef\]"""
+        return correct_stanza_name(token)
+
+    def t_TERM(self, token):
+        r"""\[Term\]"""
+        return correct_stanza_name(token)
 
     def t_value_OBO_UNQUOTED_STRING(self, token):
         r"""(?:(?:[^\\\r\n\u000A\u000C\u000D])|(?:\\[a-zA-Z]))+"""
@@ -81,6 +99,11 @@ if __name__ == "__main__":
     lexer = OboLexerBuilder().new_lexer()
     lexer.input("""
     format-version: 1.2
+    [Term]
+    ID: 1.1
+    [Typedef]
+    ID: 1.3
+    
     """)
     print("Begin")
     while True:

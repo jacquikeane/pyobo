@@ -1,13 +1,10 @@
-import unittest
-
-from pyobo.obo_document import OboHeader
-
-
-def extract_dictionary(list):
-    return [x.__dict__ for x in list]
+from pyobo.obo_document import OboHeader, OboTypedef, OboDocument, OboTerm
+from pyobo.tests.document_assert import DocumentAsserter
 
 
-class TestDocument(unittest.TestCase):
+class TestDocument(DocumentAsserter):
+    A_TERM_ID = "1234"
+    A_TYPEDEF_ID = "5678"
 
     def test_header_initialization(self):
         header = OboHeader()
@@ -36,3 +33,27 @@ class TestDocument(unittest.TestCase):
         self.assertEquals(header.id_mapping, [])
         self.assertEquals(header.relax_unique_identifier_assumption_for_namespace, [])
         self.assertEquals(header.relax_unique_label_assumption_for_namespace, [])
+
+    def test_add_term(self):
+        actual = OboDocument()
+        term = actual.add_term()
+        term.id = TestDocument.A_TERM_ID
+
+        expected = OboDocument()
+        expected_term = OboTerm()
+        expected_term.id = TestDocument.A_TERM_ID
+        expected.terms = [expected_term]
+
+        self.assertDocumentEquals(actual, expected)
+
+    def test_add_typedef(self):
+        actual = OboDocument()
+        typedef = actual.add_typedef()
+        typedef.id = TestDocument.A_TYPEDEF_ID
+
+        expected = OboDocument()
+        expected_typedef = OboTypedef()
+        expected_typedef.id = TestDocument.A_TYPEDEF_ID
+        expected.typedefs = [expected_typedef]
+
+        self.assertDocumentEquals(actual, expected)
