@@ -29,15 +29,16 @@ class TestLexer(unittest.TestCase):
     def test_should_recognise_qualifier_ids(self):
         self.under_test.in_header = False
         self.lexer.begin(OboLexerBuilder.QUALIFIER)
-        actual = self.tokenize("""AvalidId=""")
+        actual = self.tokenize("""AvalidId""")
         expected = self.to_tokens([["QUALIFIER_ID", "AvalidId", 1, 0]])
         self.assertEqualsByContent(actual, expected)
 
     def test_should_not_recognise_curly_brackets_as_part_of_qualifier_id(self):
         self.under_test.in_header = False
         self.lexer.begin(OboLexerBuilder.QUALIFIER)
-        actual = self.tokenize("""AvalidId=""")
-        expected = self.to_tokens([["QUALIFIER_ID", "AvalidId", 1, 0]])
+        actual = self.tokenize("""AvalidId}""")
+        expected = self.to_tokens([["QUALIFIER_ID", "AvalidId", 1, 0],
+                                   ["QUALIFIER_BLOCK_END", "}", 1, 8]])
         self.assertEqualsByContent(actual, expected)
 
     def test_should_recognise_qualifier_values(self):
@@ -48,7 +49,7 @@ class TestLexer(unittest.TestCase):
         self.assertEqualsByContent(actual, expected)
 
     def test_should_recognise_tags(self):
-        actual = self.tokenize("""a_valid_tag-AZ_8:""")
+        actual = self.tokenize("""a_valid_tag-AZ_8""")
         expected = self.to_tokens([["TAG", "a_valid_tag-AZ_8", 1, 0]])
         self.assertEqualsByContent(actual, expected)
 
@@ -102,6 +103,7 @@ class TestLexer(unittest.TestCase):
         self.under_test.in_header = False
         actual = self.tokenize("""is_a: RO:0002323 ! mereotopologically related to""")
         expected = self.to_tokens([["TAG", "is_a", 1, 0],
+                                   ["TAG_VALUE_SEPARATOR", ":", 1, 4],
                                    ["TAG_VALUE", "RO:0002323", 1, 6]
                                    ])
         self.assertEqualsByContent(actual, expected)
@@ -113,14 +115,20 @@ class TestLexer(unittest.TestCase):
                                """constraint. We leave in the redundant axiom for use with reasoners that do """
                                """not use negation.",  XXX="YYY"}""")
         expected = self.to_tokens([["TAG", "range", 1, 0],
+                                   ["TAG_VALUE_SEPARATOR", ":", 1, 5],
                                    ["TAG_VALUE", "BFO:0000004", 1, 7],
+                                   ["QUALIFIER_BLOCK_START", "{", 1, 19],
                                    ["QUALIFIER_ID", "http://purl.obolibrary.org/obo/IAO_0000116", 1, 20],
+                                   ["QUALIFIER_ID_VALUE_SEPARATOR", "=", 1, 62],
                                    ["QUALIFIER_VALUE",
                                     "This is redundant with the more specific 'independent and not spatial region' "
                                     "constraint. We leave in the redundant axiom for use with reasoners that do not "
                                     "use negation.", 1, 63],
+                                   ["QUALIFIER_LIST_SEPARATOR", ",", 1, 235],
                                    ["QUALIFIER_ID", "XXX", 1, 238],
-                                   ["QUALIFIER_VALUE", "YYY", 1, 242]
+                                   ["QUALIFIER_ID_VALUE_SEPARATOR", "=", 1, 241],
+                                   ["QUALIFIER_VALUE", "YYY", 1, 242],
+                                   ["QUALIFIER_BLOCK_END", "}", 1, 247],
                                    ])
         self.assertEqualsByContent(actual, expected)
 
@@ -131,12 +139,16 @@ class TestLexer(unittest.TestCase):
                                """constraint. We leave in the redundant axiom for use with reasoners that do """
                                """not use negation."}""")
         expected = self.to_tokens([["TAG", "range", 1, 0],
+                                   ["TAG_VALUE_SEPARATOR", ":", 1, 5],
                                    ["TAG_VALUE", "BFO:0000004", 1, 7],
+                                   ["QUALIFIER_BLOCK_START", "{", 1, 19],
                                    ["QUALIFIER_ID", "http://purl.obolibrary.org/obo/IAO_0000116", 1, 20],
+                                   ["QUALIFIER_ID_VALUE_SEPARATOR", "=", 1, 62],
                                    ["QUALIFIER_VALUE",
                                     "This is redundant with the more specific 'independent and not spatial region' "
                                     "constraint. We leave in the redundant axiom for use with reasoners that do not "
-                                    "use negation.", 1, 63]
+                                    "use negation.", 1, 63],
+                                   ["QUALIFIER_BLOCK_END", "}", 1, 235],
                                    ])
         self.assertEqualsByContent(actual, expected)
 
@@ -148,17 +160,21 @@ class TestLexer(unittest.TestCase):
                                """reasoners that do not use negation."} ! independent continuant""")
         expected = self.to_tokens([
             ["TAG", "range", 1, 0],
+            ["TAG_VALUE_SEPARATOR", ":", 1, 5],
             ["TAG_VALUE", "BFO:0000004", 1, 7],
+            ["QUALIFIER_BLOCK_START", "{", 1, 19],
             ["QUALIFIER_ID", "http://purl.obolibrary.org/obo/IAO_0000116", 1, 20],
+            ["QUALIFIER_ID_VALUE_SEPARATOR", "=", 1, 62],
             ["QUALIFIER_VALUE",
              "This is redundant with the more specific 'independent and not spatial region' constraint."
-             " We leave in the redundant axiom for use with reasoners that do not use negation.", 1, 63]
+             " We leave in the redundant axiom for use with reasoners that do not use negation.", 1, 63],
+            ["QUALIFIER_BLOCK_END", "}", 1, 235],
         ])
         self.assertEqualsByContent(actual, expected)
 
     def test_should_recognise_new_lines(self):
         actual = self.tokenize("""
-        a_valid_tag-AZ_8:""")
+        a_valid_tag-AZ_8""")
         expected = self.to_tokens([["TAG", "a_valid_tag-AZ_8", 2, 9]])
         self.assertEqualsByContent(actual, expected)
 
@@ -166,7 +182,9 @@ class TestLexer(unittest.TestCase):
         actual = self.tokenize("""  a_valid_tag-AZ_8: \tIt can contain any characters \t but new lines \u0145 \\a""")
         expected = self.to_tokens([
             ["TAG", "a_valid_tag-AZ_8", 1, 2],
-            ["TAG_VALUE", "It can contain any characters \t but new lines \u0145 \\a", 1, 21]])
+            ["TAG_VALUE_SEPARATOR", ":", 1, 18],
+            ["TAG_VALUE", "It can contain any characters \t but new lines \u0145 \\a", 1, 21]
+        ])
         self.assertEqualsByContent(actual, expected)
 
     def test_should_fail_on_invalid_character(self):

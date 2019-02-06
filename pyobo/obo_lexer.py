@@ -37,7 +37,9 @@ class OboLexerBuilder:
         ('qualifier', 'exclusive'),
     )
 
-    tokens = ['TAG', 'TAG_VALUE', 'TERM', 'TYPEDEF', 'QUALIFIER_ID', 'QUALIFIER_VALUE', 'BOOLEAN']
+    tokens = ['TAG', 'TAG_VALUE', 'TERM', 'TYPEDEF', 'QUALIFIER_ID', 'QUALIFIER_VALUE', 'BOOLEAN',
+              'TAG_VALUE_SEPARATOR', 'QUALIFIER_BLOCK_START', 'QUALIFIER_BLOCK_END', 'QUALIFIER_ID_VALUE_SEPARATOR',
+              'QUALIFIER_LIST_SEPARATOR']
 
     t_ignore = " \t\u0020\u0009"
 
@@ -71,9 +73,13 @@ class OboLexerBuilder:
         self.t_newline(token)
 
     def t_TAG(self, token):
-        r"""[a-zA-Z0-9_-]+:"""
+        r"""[a-zA-Z0-9_-]+"""
+        return token
+
+    def t_TAG_VALUE_SEPARATOR(self, token):
+        r""":"""
         token.lexer.begin(OboLexerBuilder.HEADER_VALUE if self.in_header else OboLexerBuilder.STANZA_VALUE)
-        return correct_tag_name(token)
+        return token
 
     def t_TYPEDEF(self, token):
         r"""\[Typedef\]"""
@@ -109,27 +115,32 @@ class OboLexerBuilder:
         r"""[ \t\u0020\u0009]*!.*"""
         pass
 
-    def t_begin_qualifier_block(self, token):
+    def t_QUALIFIER_BLOCK_START(self, token):
         r"""{"""
         token.lexer.begin(OboLexerBuilder.QUALIFIER)
-        pass
+        return token
 
-    def t_qualifier_end_qualifier_block(self, token):
+    def t_qualifier_QUALIFIER_BLOCK_END(self, token):
         r"""}"""
         token.lexer.begin('INITIAL')
-        pass
+        return token
 
     def t_qualifier_QUALIFIER_VALUE(selfself, token):
         r"""\".*?\""""
         return correct_stanza_name(token)
 
+    def t_qualifier_QUALIFIER_ID_VALUE_SEPARATOR(selfself, token):
+        r"""="""
+        return token
+
+    def t_qualifier_QUALIFIER_LIST_SEPARATOR(selfself, token):
+        r""","""
+        return token
+
     def t_qualifier_QUALIFIER_ID(selfself, token):
         r"""(?:(?:[^ \t\u0020\u0009\\\r\n\u000A\u000C\u000D=,{}])|(?:\\[a-zA-Z]))+"""
         return token
 
-    def t_qualifier_separator(selfself, token):
-        r"""[=,]"""
-        pass
 
     def t_error(self, token):
         raise OboParsingError.lexer_error(token, self.token_position(token))
@@ -172,8 +183,8 @@ if __name__ == "__main__":
     [Term]
     ID: 1.1
     [Typedef]
-    ID: 1.3
-    is_obsolete: false
+    ID: 1.3 {qualifier="quality"}
+    is_obsolete: false {qualifier1="quality1", qualifier2="quality2"}
     [Typedef]
     
     """)
