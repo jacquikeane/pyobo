@@ -13,6 +13,11 @@ class TestParser(unittest.TestCase):
         OboParser(OboLexerBuilder().new_lexer(), mock_callback).parse_line("format-version: 1.2")
         self.assertEquals(mock_callback.mock_calls, [call.tag_value_pair('format-version', '1.2')])
 
+    def test_should_parse_boolean_tag_value_pair(self):
+        mock_callback = Mock()
+        OboParser(OboLexerBuilder().new_lexer(), mock_callback).parse_line("is_anonymous: true")
+        self.assertEquals(mock_callback.mock_calls, [call.boolean_tag_value_pair('is_anonymous', True)])
+
     def test_should_parse_tag_value_pair_with_qualifiers(self):
         mock_callback = Mock()
         builder = OboLexerBuilder()

@@ -20,6 +20,7 @@ class TestReader(DocumentAsserter):
             "is_a: GO:0015142 ! tricarboxylic acid transmembrane transporter activity",
             "is_a: GO:0042895 ! antibiotic transmembrane transporter activity",
             "relationship: part_of GO:0015746 ! citrate transport",
+            "is_obsolete: true ! this is just to test a boolean",
 
             "[Typedef]",
             "id: ends_during",
@@ -41,6 +42,7 @@ class TestReader(DocumentAsserter):
         term.xref = ['reactome:R-HSA-433104 "NACT co-transports trivalent citrate and a sodium ion"']
         term.is_a = ["GO:0015142", "GO:0042895"]
         term.relationship = ["part_of GO:0015746"]
+        term.is_obsolete = True
         term._qualifiers["synonym"] = {"comment": "WIkipedia:Mitochondrial_carrier"}
 
         typedef = OboTypedef()

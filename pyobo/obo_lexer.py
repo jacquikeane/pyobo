@@ -3,6 +3,8 @@ import re
 import ply.lex as lex
 from ply.lex import LexToken
 
+from pyobo.parsing_exception import OboParsingError
+
 
 def correct_tag_name(original):
     token = LexToken()
@@ -35,7 +37,7 @@ class OboLexerBuilder:
         ('qualifier', 'exclusive'),
     )
 
-    tokens = ['TAG', 'OBO_UNQUOTED_STRING', 'TERM', 'TYPEDEF', 'QUALIFIER_ID', 'QUALIFIER_VALUE']
+    tokens = ['TAG', 'TAG_VALUE', 'TERM', 'TYPEDEF', 'QUALIFIER_ID', 'QUALIFIER_VALUE', 'BOOLEAN']
 
     t_ignore = " \t\u0020\u0009"
 
@@ -43,6 +45,7 @@ class OboLexerBuilder:
 
     t_hvalue_ignore = " \t\u0020\u0009"
     t_qualifier_ignore = " \t\u0020\u0009"
+
 
     def __init__(self):
         self.current_char_count = 0
@@ -52,6 +55,8 @@ class OboLexerBuilder:
         r"""\n+"""
         token.lexer.lineno += len(token.value)
         self.current_char_count = token.lexpos
+        if token.lexer.lineno % 10000 == 0:
+            print("Parsed %s lines so far" % token.lexer.lineno)
 
     def t_hvalue_newline(self, token):
         r"""\n+"""
@@ -80,12 +85,22 @@ class OboLexerBuilder:
         self.in_header = False
         return correct_stanza_name(token)
 
-    def t_hvalue_OBO_UNQUOTED_STRING(self, token):
+    def t_hvalue_BOOLEAN(self, token):
+        r"""true|false"""
+        token.lexer.begin('INITIAL')
+        return token
+
+    def t_svalue_BOOLEAN(self, token):
+        r"""true|false"""
+        token.lexer.begin('INITIAL')
+        return token
+
+    def t_hvalue_TAG_VALUE(self, token):
         r"""(?:(?:[^\\\r\n\u000A\u000C\u000D])|(?:\\[a-zA-Z]))+"""
         token.lexer.begin('INITIAL')
         return token
 
-    def t_svalue_OBO_UNQUOTED_STRING(self, token):
+    def t_svalue_TAG_VALUE(self, token):
         r"""(?:(?:[^\\\r\n\u000A\u000C\u000D!\{])|(?:\\[a-zA-Z]))*(?:(?:[^ \t\u0020\u0009\\\r\n\u000A\u000C\u000D!\{])|(?:\\[a-zA-Z]))+"""
         token.lexer.begin('INITIAL')
         return token
@@ -117,9 +132,7 @@ class OboLexerBuilder:
         pass
 
     def t_error(self, token):
-        print("Illegal character '%s' at line %s position %s" % (token.value[0], token.lineno,
-                                                                 self.token_position(token)))
-        token.lexer.skip(1)
+        raise OboParsingError.lexer_error(token, self.token_position(token))
 
     def t_svalue_error(self, token):
         self.t_error(token)
@@ -160,6 +173,8 @@ if __name__ == "__main__":
     ID: 1.1
     [Typedef]
     ID: 1.3
+    is_obsolete: false
+    [Typedef]
     
     """)
     print("Begin")
