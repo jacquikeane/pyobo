@@ -92,16 +92,16 @@ class TestLexer(unittest.TestCase):
         builder.in_header = False
         actual = builder.tokenize(lexer,
                                   """range: BFO:0000004 {http://purl.obolibrary.org/obo/IAO_0000116="This is """
-                                  + """redundant with the more specific 'independent and not spatial region' """
-                                  + """constraint. We leave in the redundant axiom for use with reasoners that do """
-                                  + """not use negation.",  XXX="YYY"}""")
+                                  """redundant with the more specific 'independent and not spatial region' """
+                                  """constraint. We leave in the redundant axiom for use with reasoners that do """
+                                  """not use negation.",  XXX="YYY"}""")
         expected = [to_token(lexer, "TAG", "range", 1, 0),
                     to_token(lexer, "OBO_UNQUOTED_STRING", "BFO:0000004", 1, 7),
                     to_token(lexer, "QUALIFIER_ID", "http://purl.obolibrary.org/obo/IAO_0000116", 1, 20),
                     to_token(lexer, "QUALIFIER_VALUE",
                              "This is redundant with the more specific 'independent and not spatial region' "
-                             + "constraint. We leave in the redundant axiom for use with reasoners that do not "
-                             + "use negation.", 1, 63),
+                             "constraint. We leave in the redundant axiom for use with reasoners that do not "
+                             "use negation.", 1, 63),
                     to_token(lexer, "QUALIFIER_ID",
                              "XXX", 1, 238),
                     to_token(lexer, "QUALIFIER_VALUE",
@@ -115,16 +115,16 @@ class TestLexer(unittest.TestCase):
         builder.in_header = False
         actual = builder.tokenize(lexer,
                                   """range: BFO:0000004 {http://purl.obolibrary.org/obo/IAO_0000116="This is """
-                                  + """redundant with the more specific 'independent and not spatial region' """
-                                  + """constraint. We leave in the redundant axiom for use with reasoners that do """
-                                  + """not use negation."}""")
+                                  """redundant with the more specific 'independent and not spatial region' """
+                                  """constraint. We leave in the redundant axiom for use with reasoners that do """
+                                  """not use negation."}""")
         expected = [to_token(lexer, "TAG", "range", 1, 0),
                     to_token(lexer, "OBO_UNQUOTED_STRING", "BFO:0000004", 1, 7),
                     to_token(lexer, "QUALIFIER_ID", "http://purl.obolibrary.org/obo/IAO_0000116", 1, 20),
                     to_token(lexer, "QUALIFIER_VALUE",
                              "This is redundant with the more specific 'independent and not spatial region' "
-                             + "constraint. We leave in the redundant axiom for use with reasoners that do not "
-                             + "use negation.", 1, 63)
+                             "constraint. We leave in the redundant axiom for use with reasoners that do not "
+                             "use negation.", 1, 63)
                     ]
         self.assertEqualsByContent(actual, expected)
 
@@ -134,15 +134,15 @@ class TestLexer(unittest.TestCase):
         builder.in_header = False
         actual = OboLexerBuilder().tokenize(lexer,
                                             """range: BFO:0000004 {http://purl.obolibrary.org/obo/IAO_0000116="This """
-                                            + """is redundant with the more specific 'independent and not spatial """
-                                            + """region' constraint. We leave in the redundant axiom for use with """
-                                            + """reasoners that do not use negation."} ! independent continuant""")
+                                            """is redundant with the more specific 'independent and not spatial """
+                                            """region' constraint. We leave in the redundant axiom for use with """
+                                            """reasoners that do not use negation."} ! independent continuant""")
         expected = [to_token(lexer, "TAG", "range", 1, 0),
                     to_token(lexer, "OBO_UNQUOTED_STRING", "BFO:0000004", 1, 7),
                     to_token(lexer, "QUALIFIER_ID", "http://purl.obolibrary.org/obo/IAO_0000116", 1, 20),
                     to_token(lexer, "QUALIFIER_VALUE",
                              "This is redundant with the more specific 'independent and not spatial region' constraint."
-                             + " We leave in the redundant axiom for use with reasoners that do not use negation.", 1,
+                             " We leave in the redundant axiom for use with reasoners that do not use negation.", 1,
                              63)
                     ]
         self.assertEqualsByContent(actual, expected)

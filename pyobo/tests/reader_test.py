@@ -13,9 +13,8 @@ class TestReader(DocumentAsserter):
             "id: GO:0015137",
             "name: citrate transmembrane transporter activity",
             "namespace: molecular_function",
-            # should be def, but it's a python keyword
-            """definition: "Enables the transfer of citrate, 2-hydroxy-1,2,3-propanetricarboyxlate, from one side"""
-            + """ of a membrane to the other." [GOC:ai]""",
+            '''def: "Enables the transfer of citrate, 2-hydroxy-1,2,3-propanetricarboyxlate, '''
+            '''from one side of a membrane to the other." [GOC:ai]''',
             """synonym: "tricarboxylate transport protein" RELATED [] {comment="WIkipedia:Mitochondrial_carrier"}""",
             'xref: reactome:R-HSA-433104 "NACT co-transports trivalent citrate and a sodium ion"',
             "is_a: GO:0015142 ! tricarboxylic acid transmembrane transporter activity",
@@ -33,12 +32,11 @@ class TestReader(DocumentAsserter):
         expected.header.format_version = "1.2"
         expected.header.another_format_version = ["1.3"]
         term = OboTerm()
-        term.id = ["GO:0015137"]
-        term.name = ["citrate transmembrane transporter activity"]
-        term.namespace = ["molecular_function"]
-        term.definition = [
-            """"Enables the transfer of citrate, 2-hydroxy-1,2,3-propanetricarboyxlate, from one side of a membrane"""
-            + """ to the other." [GOC:ai]"""]
+        term.id = "GO:0015137"
+        term.name = "citrate transmembrane transporter activity"
+        term.namespace = "molecular_function"
+        term.def_ = '''"Enables the transfer of citrate, 2-hydroxy-1,2,3-propanetricarboyxlate, ''' \
+                    + '''from one side of a membrane to the other." [GOC:ai]'''
         term.synonym = ['"tricarboxylate transport protein" RELATED []']
         term.xref = ['reactome:R-HSA-433104 "NACT co-transports trivalent citrate and a sodium ion"']
         term.is_a = ["GO:0015142", "GO:0042895"]
@@ -46,9 +44,9 @@ class TestReader(DocumentAsserter):
         term._qualifiers["synonym"] = {"comment": "WIkipedia:Mitochondrial_carrier"}
 
         typedef = OboTypedef()
-        typedef.id = ["ends_during"]
-        typedef.name = ["ends_during"]
-        typedef.namespace = ["external"]
+        typedef.id = "ends_during"
+        typedef.name = "ends_during"
+        typedef.namespace = "external"
         typedef.xref = ["RO:0002093"]
         expected.terms = [term]
         expected.typedefs = [typedef]

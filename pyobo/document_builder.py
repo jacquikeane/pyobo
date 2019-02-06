@@ -48,6 +48,8 @@ class OboDocumentBuilder:
             return "data_version"
         if attribute == "import":
             return "import_"
+        if attribute == "def":
+            return "def_"
         return attribute
 
 

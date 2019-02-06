@@ -19,12 +19,12 @@ class TestParser(unittest.TestCase):
         builder.in_header = False
         OboParser(builder.new_lexer(), mock_callback).parse_line(
             """range: BFO:0000004 {http://purl.obolibrary.org/obo/IAO_0000116="This is redundant with the more """
-            + """specific 'independent and not spatial region' constraint. We leave in the redundant axiom for use """
-            + """with reasoners that do not use negation.",  XXX="YYY"} ! some comment""")
+            """specific 'independent and not spatial region' constraint. We leave in the redundant axiom for use """
+            """with reasoners that do not use negation.",  XXX="YYY"} ! some comment""")
         self.assertEquals(mock_callback.mock_calls, [
             call.qualifier('http://purl.obolibrary.org/obo/IAO_0000116',
                            "This is redundant with the more specific 'independent and not spatial region' constraint. "
-                           + "We leave in the redundant axiom for use with reasoners that do not use negation."),
+                           "We leave in the redundant axiom for use with reasoners that do not use negation."),
             call.qualifier("XXX", "YYY"),
             call.tag_value_pair('range', 'BFO:0000004'),
         ])

@@ -1,5 +1,11 @@
 class Base:
 
+    def __init__(self, single_value_tags=[], multi_value_tags=[]):
+        for tag in single_value_tags:
+            self.__dict__[tag] = None
+        for tag in multi_value_tags:
+            self.__dict__[tag] = []
+
     def __repr__(self):
         fields = ["%s=%s" % (key, self.__dict__[key]) for key in sorted(self.__dict__.keys())]
         return "%s%s" % (self.__class__.__name__, fields)
@@ -24,28 +30,103 @@ class OboDocument(Base):
         return typedef
 
 
-header_tvp = ['ontology', 'format_version', 'date', 'default_namespace', 'saved_by', 'auto_generated_by',
-              'data_version', 'default_relationship_id_prefix']
-header_mtvp = ['remark', 'import_', 'subsetdef', 'synonymtypedef', 'idspace', 'treat_xrefs_as_equivalent',
-               'treat_xrefs_as_genus_differentia', 'treat_xrefs_as_reverse_genus_differentia',
-               'treat_xrefs_as_relationship',
-               'treat_xrefs_as_is_a', 'treat_xrefs_as_has_subclass', 'property_value', 'owl_axioms', 'id_mapping',
-               'relax_unique_identifier_assumption_for_namespace',
-               'relax_unique_label_assumption_for_namespace'
-               ]
+HEADER_SINGLE_VALUE_TAGS = ['ontology',
+                            'format_version',
+                            'date',
+                            'default_namespace',
+                            'saved_by',
+                            'auto_generated_by',
+                            'data_version',
+                            'default_relationship_id_prefix']
+
+HEADER_MULTI_VALUE_TAGS = ['remark',
+                           'import_',
+                           'subsetdef',
+                           'synonymtypedef',
+                           'idspace',
+                           'treat_xrefs_as_equivalent',
+                           'treat_xrefs_as_genus_differentia',
+                           'treat_xrefs_as_reverse_genus_differentia',
+                           'treat_xrefs_as_relationship',
+                           'treat_xrefs_as_is_a',
+                           'treat_xrefs_as_has_subclass',
+                           'property_value',
+                           'owl_axioms',
+                           'id_mapping',
+                           'relax_unique_identifier_assumption_for_namespace',
+                           'relax_unique_label_assumption_for_namespace']
+
+TERM_SINGLE_VALUE_TAGS = ['id',
+                          'is_anonymous',
+                          'name',
+                          'namespace',
+                          'def_',
+                          'comment',
+                          'builtin',
+                          'is_obsolete',
+                          'created_by',
+                          'creation_date']
+TERM_MULTI_VALUE_TAGS = ['alt_id',
+                         'subset',
+                         'synonym',
+                         'xref',
+                         'property_value',
+                         'is_a',
+                         'intersection_of',
+                         'union_of',
+                         'equivalent_to',
+                         'disjoint_from',
+                         'relationship',
+                         'replaced_by',
+                         'consider']
+
+TYPEDEF_SINGLE_VALUE_TAGS = ['id',
+                             'is_anonymous',
+                             'name',
+                             'namespace',
+                             'def_',
+                             'comment',
+                             'domain',
+                             'range',
+                             'builtin',
+                             'is_anti_symmetric',
+                             'is_cyclic',
+                             'is_reflexive',
+                             'is_symmetric',
+                             'is_transitive',
+                             'is_functional',
+                             'is_inverse_functional',
+                             'is_obsolete',
+                             'created_by',
+                             'creation_date',
+                             'is_metadata_tag',
+                             'is_class_level_tag']
+TYPEDEF_MULTI_VALUE_TAGS = ['alt_id',
+                            'subset',
+                            'synonym',
+                            'xref',
+                            'property_value',
+                            'holds_over_chain',
+                            'is_a',
+                            'intersection_of',
+                            'union_of',
+                            'equivalent_to',
+                            'disjoint_from',
+                            'inverse_of',
+                            'transitive_over',
+                            'equivalent_to_chain',
+                            'disjoint_over',
+                            'relationship',
+                            'replaced_by',
+                            'consider',
+                            'expand_assertion_to',
+                            'expand_expression_to']
 
 
 class OboHeader(Base):
 
     def __init__(self):
-        for tvp in header_tvp:
-            self.__dict__[tvp] = None
-        for tvp in header_mtvp:
-            self.__dict__[tvp] = []
-        self._qualifiers = {}
-
-    def add_qualifiers(self, attribute, qualifiers):
-        self._qualifiers[attribute] = qualifiers
+        super(OboHeader, self).__init__(HEADER_SINGLE_VALUE_TAGS, HEADER_MULTI_VALUE_TAGS)
 
     def valid(self):
         return self.format_version is not None
@@ -53,7 +134,8 @@ class OboHeader(Base):
 
 class OboStanza(Base):
 
-    def __init__(self):
+    def __init__(self, single_value_tags, multi_value_tags):
+        super(OboStanza, self).__init__(single_value_tags, multi_value_tags)
         self._qualifiers = {}
 
     def add_qualifiers(self, attribute, qualifiers):
@@ -66,13 +148,12 @@ class OboStanza(Base):
 class OboTerm(OboStanza):
 
     def __init__(self):
-        self._qualifiers = {}
+        super(OboTerm, self).__init__(TERM_SINGLE_VALUE_TAGS, TERM_MULTI_VALUE_TAGS)
         pass
 
 
 class OboTypedef(OboStanza):
 
     def __init__(self):
-        self._qualifiers = {}
+        super(OboTypedef, self).__init__(TYPEDEF_SINGLE_VALUE_TAGS, TYPEDEF_MULTI_VALUE_TAGS)
         pass
-

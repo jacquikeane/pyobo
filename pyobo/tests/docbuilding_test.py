@@ -64,20 +64,26 @@ class TestDocBuilding(DocumentAsserter):
 
     def test_should_support_qualifiers(self):
         under_test = OboDocumentBuilder()
+        under_test.term()
         under_test.qualifier("q1", "v1")
         under_test.tag_value_pair("data-version", "world")
         expected = OboDocument()
-        expected.header.data_version = "world"
-        expected.header._qualifiers["data_version"] = {"q1": "v1"}
+        term = OboTerm()
+        expected.terms = [term]
+        term.data_version = ["world"]
+        term._qualifiers["data_version"] = {"q1": "v1"}
         self.assertDocumentEquals(under_test.document, expected)
 
     def test_should_support_mix_qualifiers_and_no_qualifier(self):
         under_test = OboDocumentBuilder()
+        under_test.term()
         under_test.qualifier("q1", "v1")
         under_test.tag_value_pair("data-version", "world")
         under_test.tag_value_pair("data-version2", "world2")
         expected = OboDocument()
-        expected.header.data_version = "world"
-        expected.header.data_version2 = ["world2"]
-        expected.header._qualifiers["data_version"] = {"q1": "v1"}
+        term = OboTerm()
+        expected.terms = [term]
+        term.data_version = ["world"]
+        term.data_version2 = ["world2"]
+        term._qualifiers["data_version"] = {"q1": "v1"}
         self.assertDocumentEquals(under_test.document, expected)
