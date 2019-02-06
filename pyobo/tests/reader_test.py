@@ -7,26 +7,26 @@ class TestReader(DocumentAsserter):
 
     def test_should_read_lines(self):
         actual = read((line for line in [
-            "format-version: 1.2",
-            "another-format-version: 1.3",
-            "[Term]",
-            "id: GO:0015137",
-            "name: citrate transmembrane transporter activity",
-            "namespace: molecular_function",
+            "format-version: 1.2\n",
+            "another-format-version: 1.3\n",
+            "[Term]\n",
+            "id: GO:0015137\n",
+            "name: citrate transmembrane transporter activity\n",
+            "namespace: molecular_function\n",
             '''def: "Enables the transfer of citrate, 2-hydroxy-1,2,3-propanetricarboyxlate, '''
-            '''from one side of a membrane to the other." [GOC:ai]''',
-            """synonym: "tricarboxylate transport protein" RELATED [] {comment="WIkipedia:Mitochondrial_carrier"}""",
-            'xref: reactome:R-HSA-433104 "NACT co-transports trivalent citrate and a sodium ion"',
-            "is_a: GO:0015142 ! tricarboxylic acid transmembrane transporter activity",
-            "is_a: GO:0042895 ! antibiotic transmembrane transporter activity",
-            "relationship: part_of GO:0015746 ! citrate transport",
-            "is_obsolete: true ! this is just to test a boolean",
+            '''from one side of a membrane to the other." [GOC:ai]\n''',
+            """synonym: "tricarboxylate transport protein" RELATED [] {comment="WIkipedia:Mitochondrial_carrier"}\n""",
+            'xref: reactome:R-HSA-433104 "NACT co-transports trivalent citrate and a sodium ion"\n',
+            "is_a: GO:0015142 ! tricarboxylic acid transmembrane transporter activity\n",
+            "is_a: GO:0042895 ! antibiotic transmembrane transporter activity\n",
+            "relationship: part_of GO:0015746 ! citrate transport\n",
+            "is_obsolete: true ! this is just to test a boolean\n",
 
-            "[Typedef]",
-            "id: ends_during",
-            "name: ends_during",
-            "namespace: external",
-            "xref: RO:0002093",
+            "[Typedef]\n",
+            "id: ends_during\n",
+            "name: ends_during\n",
+            "namespace: external\n",
+            "xref: RO:0002093\n",
 
         ]))
         expected = OboDocument()

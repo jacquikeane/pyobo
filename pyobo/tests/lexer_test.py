@@ -53,6 +53,12 @@ class TestLexer(unittest.TestCase):
         expected = self.to_tokens([["TAG", "a_valid_tag-AZ_8", 1, 0]])
         self.assertEqualsByContent(actual, expected)
 
+    def test_should_recognise_escape_chars_in_tags(self):
+        actual = self.tokenize("""a_valid_tag-AZ_8\\n\\W\\t\\:\\,\\"\\\\\\(\\)\\{\\}\\[\\]@""")
+        expected = self.to_tokens([["TAG", """a_valid_tag-AZ_8
+ \t:,\"\\(){}[]@""", 1, 0]])
+        self.assertEqualsByContent(actual, expected)
+
     def test_should_recognise_typedefs(self):
         actual = self.tokenize("""[Typedef]""")
         expected = self.to_tokens([["TYPEDEF", "Typedef", 1, 0]])
@@ -69,10 +75,26 @@ class TestLexer(unittest.TestCase):
         expected = self.to_tokens([["TAG_VALUE", "It can contain any characters but new lines \u0145 \\a", 1, 0]])
         self.assertEqualsByContent(actual, expected)
 
+    def test_should_recognise_escape_characters_in_header_tag_values(self):
+        self.lexer.begin(OboLexerBuilder.HEADER_VALUE)
+        actual = self.tokenize("""It can contain any characters but """
+                               """new lines \u0145 \\a\\n\\W\\t\\:\\,\\"\\\\\\(\\)\\{\\}\\[\\]@""")
+        expected = self.to_tokens([["TAG_VALUE", """It can contain any characters but new lines \u0145 \\a
+ \t:,\"\\(){}[]@""", 1, 0]])
+        self.assertEqualsByContent(actual, expected)
+
     def test_should_recognise_stanza_tag_values(self):
         self.lexer.begin(OboLexerBuilder.STANZA_VALUE)
         actual = self.tokenize("""It can contain any characters but new lines \u0145 \\a""")
         expected = self.to_tokens([["TAG_VALUE", "It can contain any characters but new lines \u0145 \\a", 1, 0]])
+        self.assertEqualsByContent(actual, expected)
+
+    def test_should_recognise_escape_characters_in_stanza_tag_values(self):
+        self.lexer.begin(OboLexerBuilder.STANZA_VALUE)
+        actual = self.tokenize("""It can contain any characters but """
+                               """new lines \u0145 \\a\\n\\W\\t\\:\\,\\"\\\\\\(\\)\\{\\}\\[\\]@""")
+        expected = self.to_tokens([["TAG_VALUE", """It can contain any characters but new lines \u0145 \\a
+ \t:,\"\\(){}[]@""", 1, 0]])
         self.assertEqualsByContent(actual, expected)
 
     def test_should_recognise_true_tag_values_in_stanza(self):
