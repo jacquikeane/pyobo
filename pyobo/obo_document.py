@@ -13,6 +13,16 @@ class OboDocument(Base):
         self.typedefs = []
         pass
 
+    def add_term(self):
+        term = OboTerm()
+        self.terms.append(term)
+        return term
+
+    def add_typedef(self):
+        typedef = OboTypedef()
+        self.typedefs.append(typedef)
+        return typedef
+
 
 header_tvp = ['ontology', 'format_version', 'date', 'default_namespace', 'saved_by', 'auto_generated_by',
               'data_version', 'default_relationship_id_prefix']
@@ -32,7 +42,37 @@ class OboHeader(Base):
             self.__dict__[tvp] = None
         for tvp in header_mtvp:
             self.__dict__[tvp] = []
-        pass
+        self._qualifiers = {}
+
+    def add_qualifiers(self, attribute, qualifiers):
+        self._qualifiers[attribute] = qualifiers
 
     def valid(self):
         return self.format_version is not None
+
+
+class OboStanza(Base):
+
+    def __init__(self):
+        self._qualifiers = {}
+
+    def add_qualifiers(self, attribute, qualifiers):
+        self._qualifiers[attribute] = qualifiers
+
+    def valid(self):
+        return True
+
+
+class OboTerm(OboStanza):
+
+    def __init__(self):
+        self._qualifiers = {}
+        pass
+
+
+class OboTypedef(OboStanza):
+
+    def __init__(self):
+        self._qualifiers = {}
+        pass
+

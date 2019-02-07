@@ -7,26 +7,24 @@ class OboDocumentBuilder:
     def __init__(self):
         self.document = OboDocument()
         self.scope = self.document.header
+        self.qualifiers = {}
 
-    def obo_file(self):
-        print("obo_file")
+    def term(self):
+        self.scope = self.document.add_term()
 
-    def header_clause(self):
-        print("header_clause")
-
-    def tag_list_single(self):
-        print("p_tag_list_single")
-
-    def tag_list_multiple(self):
-        print("tag_list_multiple")
-
-    def tag_definition(self):
-        print("tag_definition")
+    def typedef(self):
+        self.scope = self.document.add_typedef()
 
     def tag_value_pair(self, tag, value):
         attribute = OboDocumentBuilder._extract_attribute(tag)
         self._ensure_attribute_is_defined(attribute)
         self._set_attribute_value(tag, attribute, value)
+        if len(self.qualifiers) > 0:
+            self.scope.add_qualifiers(attribute, self.qualifiers)
+            self.qualifiers = {}
+
+    def qualifier(self, id, value):
+        self.qualifiers[id] = value
 
     def _set_attribute_value(self, tag, attribute, value):
         current_value = self.scope.__dict__.get(attribute)
