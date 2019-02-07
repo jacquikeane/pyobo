@@ -9,6 +9,5 @@ def read(line_generator):
     parser.parse(line_generator)
     return builder.document
 
-
 if __name__ == "__main__":
     print(read((line for line in ["format-version: 1.2"])))

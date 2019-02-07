@@ -1,3 +1,5 @@
+import re
+
 import ply.yacc as yacc
 
 from pyobo.obo_lexer import OboLexerBuilder
@@ -12,25 +14,38 @@ class OboParser:
         self.parser = self.create_yacc_parser()
         self.vars = {}
         self.callback = callback
+        self.pattern = re.compile("^\s*$")
 
     def create_yacc_parser(self):
         return yacc.yacc(module=self, debug=False, write_tables=False)
 
     def p_obo_file_line_tag_value_pair(self, p):
-        """obo_file_line : TAG OBO_UNQUOTED_STRING"""
-        self.callback.tag_value_pair(p[1], p[2])
+        """obo_file_line : TAG TAG_VALUE_SEPARATOR TAG_VALUE"""
+        self.callback.tag_value_pair(p[1], p[3])
+
+    def p_obo_file_line_boolean_tag_value_pair(self, p):
+        """obo_file_line : TAG TAG_VALUE_SEPARATOR BOOLEAN"""
+        self.callback.boolean_tag_value_pair(p[1], p[3] == 'true')
 
     def p_obo_file_line_tag_value_pair_with_qualifiers(self, p):
-        """obo_file_line : TAG OBO_UNQUOTED_STRING qualifier_block"""
-        self.callback.tag_value_pair(p[1], p[2])
+        """obo_file_line : TAG TAG_VALUE_SEPARATOR TAG_VALUE qualifier_block"""
+        self.callback.tag_value_pair(p[1], p[3])
 
-    def p_qualifier_block_single(self, p):
-        """qualifier_block : QUALIFIER_ID QUALIFIER_VALUE"""
-        self.callback.qualifier(p[1], p[2])
+    def p_qualifier_block(self, p):
+        """qualifier_block : QUALIFIER_BLOCK_START qualifier_list QUALIFIER_BLOCK_END"""
+        pass
 
-    def p_qualifier_block_multiple(self, p):
-        """qualifier_block : qualifier_block QUALIFIER_ID QUALIFIER_VALUE"""
-        self.callback.qualifier(p[2], p[3])
+    def p_qualifier_list_single(self, p):
+        """qualifier_list : qualifier"""
+        pass
+
+    def p_qualifier_list_multiple(self, p):
+        """qualifier_list : qualifier_list QUALIFIER_LIST_SEPARATOR qualifier"""
+        pass
+
+    def p_qualifier(self, p):
+        """qualifier : QUALIFIER_ID QUALIFIER_ID_VALUE_SEPARATOR QUALIFIER_VALUE"""
+        self.callback.qualifier(p[1], p[3])
 
     def p_obo_file_line_term(self, p):
         """obo_file_line : TERM"""
@@ -40,12 +55,24 @@ class OboParser:
         """obo_file_line : TYPEDEF"""
         self.callback.typedef()
 
+    def p_error(self, p):
+        if self.pattern.match(self.input):
+            return
+
+        print("Syntax error line: %s error: %s" % (self.input, p))
+        pass
+
     def parse_line(self, input):
+        self.input = input
         self.parser.parse(lexer=self.lexer, input=input)
 
     def parse(self, generator):
         for input in generator:
-            self.parse_line(input)
+            try:
+                self.parse_line(input)
+            except Exception as inst:
+                # TODO register issues as part of the results
+                print("Unexpected error: %s. \n %s" % (inst, input))
 
 
 if __name__ == "__main__":
@@ -53,6 +80,9 @@ if __name__ == "__main__":
 
         def __init__(self):
             pass
+
+        def boolean_tag_value_pair(self, tag_token, value_token):
+            print("boolean_value_tag %s %s" % (tag_token, value_token))
 
         def tag_value_pair(self, tag_token, value_token):
             print("single_value_tag %s %s" % (tag_token, value_token))
@@ -73,4 +103,5 @@ if __name__ == "__main__":
         "[Typedef]",
         """tag2: value2 {q1="v1"}""",
         """tag3: value3 {q2="v2", q3="v3"}""",
+        """tag4: true {q1="v1"}""",
     ])

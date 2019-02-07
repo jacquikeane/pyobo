@@ -3,6 +3,8 @@ import re
 import ply.lex as lex
 from ply.lex import LexToken
 
+from pyobo.parsing_exception import OboParsingError
+
 
 def correct_tag_name(original):
     token = LexToken()
@@ -35,7 +37,9 @@ class OboLexerBuilder:
         ('qualifier', 'exclusive'),
     )
 
-    tokens = ['TAG', 'OBO_UNQUOTED_STRING', 'TERM', 'TYPEDEF', 'QUALIFIER_ID', 'QUALIFIER_VALUE']
+    tokens = ['TAG', 'TAG_VALUE', 'TERM', 'TYPEDEF', 'QUALIFIER_ID', 'QUALIFIER_VALUE', 'BOOLEAN',
+              'TAG_VALUE_SEPARATOR', 'QUALIFIER_BLOCK_START', 'QUALIFIER_BLOCK_END', 'QUALIFIER_ID_VALUE_SEPARATOR',
+              'QUALIFIER_LIST_SEPARATOR']
 
     t_ignore = " \t\u0020\u0009"
 
@@ -47,11 +51,16 @@ class OboLexerBuilder:
     def __init__(self):
         self.current_char_count = 0
         self.in_header = True
+        self.tag_escape_replacement = re.compile(
+            r"""(?P<discard>\\)(?:(?P<keep>[\\\(\)\[\]\{\}:,"])|(?P<blank>W)|(?P<tab>t)|(?P<newline>n))""")
 
     def t_newline(self, token):
         r"""\n+"""
+        token.lexer.begin('INITIAL')
         token.lexer.lineno += len(token.value)
         self.current_char_count = token.lexpos
+        if token.lexer.lineno % 10000 == 0:
+            print("Parsed %s lines so far" % token.lexer.lineno)
 
     def t_hvalue_newline(self, token):
         r"""\n+"""
@@ -66,9 +75,34 @@ class OboLexerBuilder:
         self.t_newline(token)
 
     def t_TAG(self, token):
-        r"""[a-zA-Z0-9_-]+:"""
+        r"""(?:[-a-zA-Z0-9_@]|\\[Wtn\\\(\)\[\]\{\}:,"])+"""
+        return self._replace_escaped_characters(token)
+
+    def _replace_escaped_characters(self, original):
+        def replace_escape(matchobj):
+            if matchobj.group("newline"):
+                return '\n'
+            if matchobj.group("blank"):
+                return ' '
+            if matchobj.group("keep"):
+                return matchobj.group("keep")
+            if matchobj.group("tab"):
+                return '\t'
+
+            return None
+
+        token = LexToken()
+        token.type = original.type
+        token.value = self.tag_escape_replacement.sub(replace_escape, original.value)
+        token.lineno = original.lineno
+        token.lexpos = original.lexpos
+        token.lexer = original.lexer
+        return token
+
+    def t_TAG_VALUE_SEPARATOR(self, token):
+        r""":"""
         token.lexer.begin(OboLexerBuilder.HEADER_VALUE if self.in_header else OboLexerBuilder.STANZA_VALUE)
-        return correct_tag_name(token)
+        return token
 
     def t_TYPEDEF(self, token):
         r"""\[Typedef\]"""
@@ -80,46 +114,73 @@ class OboLexerBuilder:
         self.in_header = False
         return correct_stanza_name(token)
 
-    def t_hvalue_OBO_UNQUOTED_STRING(self, token):
-        r"""(?:(?:[^\\\r\n\u000A\u000C\u000D])|(?:\\[a-zA-Z]))+"""
+    def t_hvalue_BOOLEAN(self, token):
+        r"""true|false"""
         token.lexer.begin('INITIAL')
         return token
 
-    def t_svalue_OBO_UNQUOTED_STRING(self, token):
-        r"""(?:(?:[^\\\r\n\u000A\u000C\u000D!\{])|(?:\\[a-zA-Z]))*(?:(?:[^ \t\u0020\u0009\\\r\n\u000A\u000C\u000D!\{])|(?:\\[a-zA-Z]))+"""
-        token.lexer.begin('INITIAL')
+    def t_svalue_BOOLEAN(self, token):
+        r"""true|false"""
         return token
 
-    def t_comment(self, token):
+    def t_hvalue_TAG_VALUE(self, token):
+        r"""(?:(?:[^\\\r\n\u000A\u000C\u000D])|(?:\\[a-zA-Z])|(?:\\[Wtn\\\(\)\[\]\{\}:,"]))+"""
+        token.lexer.begin('INITIAL')
+        return self._replace_escaped_characters(token)
+
+    def t_svalue_TAG_VALUE(self, token):
+        r"""(?:(?:[^\\\r\n\u000A\u000C\u000D!\{])|(?:\\[a-zA-Z])|(?:\\[Wtn\\\(\)\[\]\{\}:,"]))*(?:(?:[^ """ \
+        r"""\t\u0020\u0009\\\r\n\u000A\u000C\u000D!\{])|(?:\\[a-zA-Z])|(?:\\[Wtn\\\(\)\[\]\{\}:,"]))+"""
+        return self._replace_escaped_characters(token)
+
+    def t_svalue_comment(self, token):
         r"""[ \t\u0020\u0009]*!.*"""
         pass
 
-    def t_begin_qualifier_block(self, token):
+    def t_svalue_QUALIFIER_BLOCK_START(self, token):
         r"""{"""
         token.lexer.begin(OboLexerBuilder.QUALIFIER)
-        pass
+        return token
 
-    def t_qualifier_end_qualifier_block(self, token):
+    def t_qualifier_QUALIFIER_BLOCK_END(self, token):
         r"""}"""
-        token.lexer.begin('INITIAL')
-        pass
+        token.lexer.begin(OboLexerBuilder.STANZA_VALUE)
+        return token
 
     def t_qualifier_QUALIFIER_VALUE(selfself, token):
         r"""\".*?\""""
         return correct_stanza_name(token)
 
+    def t_qualifier_QUALIFIER_ID_VALUE_SEPARATOR(selfself, token):
+        r"""="""
+        return token
+
+    def t_qualifier_QUALIFIER_LIST_SEPARATOR(selfself, token):
+        r""","""
+        return token
+
     def t_qualifier_QUALIFIER_ID(selfself, token):
         r"""(?:(?:[^ \t\u0020\u0009\\\r\n\u000A\u000C\u000D=,{}])|(?:\\[a-zA-Z]))+"""
         return token
 
-    def t_qualifier_separator(selfself, token):
-        r"""[=,]"""
-        pass
+    # \n  newline
+    # \W single space
+    # \t tab
+    # \: colon
+    # \, comma
+    # \" double quote
+    # \\ backslash
+    # \( open parenthesis
+    # \) close parenthesis
+    # \[ open bracket
+    # \] close bracket
+    # \{ open brace
+    # \} close brace
+    # @ at (language tag)
+    # \<newline>
 
     def t_error(self, token):
-        print("Illegal character '%s' at line %s position %s" % (token.value[0], token.lineno,
-                                                                 self.token_position(token)))
-        token.lexer.skip(1)
+        raise OboParsingError.lexer_error(token, self.token_position(token))
 
     def t_svalue_error(self, token):
         self.t_error(token)
@@ -159,7 +220,9 @@ if __name__ == "__main__":
     [Term]
     ID: 1.1
     [Typedef]
-    ID: 1.3
+    ID: 1.3 {qualifier="quality"}
+    is_obsolete: false {qualifier1="quality1", qualifier2="quality2"}
+    [Typedef]
     
     """)
     print("Begin")
