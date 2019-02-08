@@ -4,10 +4,9 @@ from functools import partial
 from ply.lex import LexToken
 
 from pyobo.obo_lexer import OboLexerBuilder
-from pyobo.parsing_exception import OboParsingError
 
 
-class TestLexer(unittest.TestCase):
+class OboLexerBuilderTest(unittest.TestCase):
 
     def setUp(self):
         self.under_test = OboLexerBuilder()
@@ -26,102 +25,7 @@ class TestLexer(unittest.TestCase):
             result.append(token)
         return result
 
-    def test_should_recognise_qualifier_ids(self):
-        self.under_test.in_header = False
-        self.lexer.push_state(OboLexerBuilder.QUALIFIER)
-        actual = self.tokenize("""AvalidId""")
-        expected = self.to_tokens([["QUALIFIER_ID", "AvalidId", 1, 0]])
-        self.assertEqualsByContent(actual, expected)
-
-    def test_should_not_recognise_curly_brackets_as_part_of_qualifier_id(self):
-        self.under_test.in_header = False
-        self.lexer.push_state(OboLexerBuilder.QUALIFIER)
-        actual = self.tokenize("""AvalidId}""")
-        expected = self.to_tokens([["QUALIFIER_ID", "AvalidId", 1, 0],
-                                   ["QUALIFIER_BLOCK_END", "}", 1, 8]])
-        self.assertEqualsByContent(actual, expected)
-
-    def test_should_recognise_qualifier_values(self):
-        self.under_test.in_header = False
-        self.lexer.push_state(OboLexerBuilder.QUALIFIER)
-        actual = self.tokenize("""\"=some value,,{\"""")
-        expected = self.to_tokens([["QUALIFIER_VALUE", "=some value,,{", 1, 0]])
-        self.assertEqualsByContent(actual, expected)
-
-    def test_should_recognise_tags(self):
-        actual = self.tokenize("""a_valid_tag-AZ_8""")
-        expected = self.to_tokens([["TAG", "a_valid_tag-AZ_8", 1, 0]])
-        self.assertEqualsByContent(actual, expected)
-
-    def test_should_recognise_escape_chars_in_tags(self):
-        actual = self.tokenize("""a_valid_tag-AZ_8\\n\\W\\t\\:\\,\\"\\\\\\(\\)\\{\\}\\[\\]@""")
-        expected = self.to_tokens([["TAG", """a_valid_tag-AZ_8
- \t:,\"\\(){}[]@""", 1, 0]])
-        self.assertEqualsByContent(actual, expected)
-
-    def test_should_recognise_typedefs(self):
-        actual = self.tokenize("""[Typedef]""")
-        expected = self.to_tokens([["TYPEDEF", "Typedef", 1, 0]])
-        self.assertEqualsByContent(actual, expected)
-
-    def test_should_recognise_terms(self):
-        actual = self.tokenize("""[Term]""")
-        expected = self.to_tokens([["TERM", "Term", 1, 0]])
-        self.assertEqualsByContent(actual, expected)
-
-    def test_should_recognise_header_tag_values(self):
-        self.lexer.push_state(OboLexerBuilder.HEADER_VALUE)
-        actual = self.tokenize("""It can contain any characters but new lines \u0145 \\a""")
-        expected = self.to_tokens([["TAG_VALUE", "It can contain any characters but new lines \u0145 \\a", 1, 0]])
-        self.assertEqualsByContent(actual, expected)
-
-    def test_should_recognise_escape_characters_in_header_tag_values(self):
-        self.lexer.push_state(OboLexerBuilder.HEADER_VALUE)
-        actual = self.tokenize("""It can contain any characters but """
-                               """new lines \u0145 \\a\\n\\W\\t\\:\\,\\"\\\\\\(\\)\\{\\}\\[\\]@""")
-        expected = self.to_tokens([["TAG_VALUE", """It can contain any characters but new lines \u0145 \\a
- \t:,\"\\(){}[]@""", 1, 0]])
-        self.assertEqualsByContent(actual, expected)
-
-    def test_should_recognise_stanza_tag_values(self):
-        self.lexer.push_state(OboLexerBuilder.STANZA_VALUE)
-        actual = self.tokenize("""It can contain any characters but new lines \u0145 \\a""")
-        expected = self.to_tokens([["TAG_VALUE", "It can contain any characters but new lines \u0145 \\a", 1, 0]])
-        self.assertEqualsByContent(actual, expected)
-
-    def test_should_recognise_escape_characters_in_stanza_tag_values(self):
-        self.lexer.push_state(OboLexerBuilder.STANZA_VALUE)
-        actual = self.tokenize("""It can contain any characters but """
-                               """new lines \u0145 \\a\\n\\W\\t\\:\\,\\"\\\\\\(\\)\\{\\}\\[\\]@""")
-        expected = self.to_tokens([["TAG_VALUE", """It can contain any characters but new lines \u0145 \\a
- \t:,\"\\(){}[]@""", 1, 0]])
-        self.assertEqualsByContent(actual, expected)
-
-    def test_should_recognise_true_tag_values_in_stanza(self):
-        self.lexer.push_state(OboLexerBuilder.STANZA_VALUE)
-        actual = self.tokenize("""true""")
-        expected = self.to_tokens([["BOOLEAN", "true", 1, 0]])
-        self.assertEqualsByContent(actual, expected)
-
-    def test_should_recognise_false_tag_values_in_stanza(self):
-        self.lexer.push_state(OboLexerBuilder.STANZA_VALUE)
-        actual = self.tokenize("""false""")
-        expected = self.to_tokens([["BOOLEAN", "false", 1, 0]])
-        self.assertEqualsByContent(actual, expected)
-
-    def test_should_recognise_true_tag_values_in_header(self):
-        self.lexer.push_state(OboLexerBuilder.HEADER_VALUE)
-        actual = self.tokenize("""true""")
-        expected = self.to_tokens([["BOOLEAN", "true", 1, 0]])
-        self.assertEqualsByContent(actual, expected)
-
-    def test_should_recognise_false_tag_values_in_header(self):
-        self.lexer.push_state(OboLexerBuilder.HEADER_VALUE)
-        actual = self.tokenize("""false""")
-        expected = self.to_tokens([["BOOLEAN", "false", 1, 0]])
-        self.assertEqualsByContent(actual, expected)
-
-    def test_should_recognise_an_ending_comment(self):
+    def test_should_recognise_a_tag_and_ignore_an_ending_comment(self):
         self.under_test.in_header = False
         actual = self.tokenize("""is_a: RO:0002323 ! mereotopologically related to""")
         expected = self.to_tokens([["TAG", "is_a", 1, 0],
@@ -172,20 +76,6 @@ class TestLexer(unittest.TestCase):
                                    ["QUALIFIER_VALUE", "quality", 1, 65],
                                    ["QUALIFIER_BLOCK_END", "}", 1, 74],
                                    ])
-        self.assertEqualsByContent(actual, expected)
-
-    def test_should_recognise_xref_block_with_escaped_characters(self):
-        self.under_test.in_header = False
-        self.lexer.push_state(OboLexerBuilder.XREF_LIST)
-        actual = self.tokenize(
-            '''[http:/www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=search&db=pubmed&term=SILVERMAN+SK[au\\]&dispmax=50]''')
-        expected = self.to_tokens([
-            ["XREF_LIST_START", "[", 1, 0],
-            ["XREF",
-             "http:/www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=search&db=pubmed&term=SILVERMAN+SK[au]&dispmax=50", 1,
-             1],
-            ["XREF_LIST_END", "]", 1, 100],
-        ])
         self.assertEqualsByContent(actual, expected)
 
     def test_should_recognise_xref_tag(self):
@@ -248,17 +138,13 @@ class TestLexer(unittest.TestCase):
         self.assertEqualsByContent(actual, expected)
 
     def test_should_ignore_spaces_and_tab(self):
-        actual = self.tokenize("""  a_valid_tag-AZ_8: \tIt can contain any characters \t but new lines \u0145 \\a""")
+        actual = self.tokenize(""" \t a_valid_tag-AZ_8: \tIt can contain any characters \t but new lines \u0145 \\a""")
         expected = self.to_tokens([
-            ["TAG", "a_valid_tag-AZ_8", 1, 2],
-            ["TAG_VALUE_SEPARATOR", ":", 1, 18],
-            ["TAG_VALUE", "It can contain any characters \t but new lines \u0145 \\a", 1, 21]
+            ["TAG", "a_valid_tag-AZ_8", 1, 3],
+            ["TAG_VALUE_SEPARATOR", ":", 1, 19],
+            ["TAG_VALUE", "It can contain any characters \t but new lines \u0145 \\a", 1, 22]
         ])
         self.assertEqualsByContent(actual, expected)
-
-    def test_should_fail_on_invalid_character(self):
-        with self.assertRaises(OboParsingError):
-            self.tokenize("""==:""")
 
     def assertEqualsByContent(self, actual, expected):
         def extract_dictionary(list):
