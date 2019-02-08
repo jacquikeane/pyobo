@@ -54,7 +54,7 @@ class TestFullySupportedHeaderTags(DocumentAsserter):
         self.assertDocumentEquals(actual, expected)
 
     def test_supports_multiple_remarks(self):
-        actual = read((line for line in ["remark: some comment", "remark: some other comment"]))
+        actual = read((line for line in ["remark: some comment\n", "remark: some other comment\n"]))
         expected = OboDocument()
         expected.header.remark = ["some comment", "some other comment"]
         self.assertDocumentEquals(actual, expected)
@@ -66,7 +66,7 @@ class TestFullySupportedHeaderTags(DocumentAsserter):
         self.assertDocumentEquals(actual, expected)
 
     def test_supports_multiple_owl_axioms(self):
-        actual = read((line for line in ["owl-axioms: an axiom", "owl-axioms: another axiom"]))
+        actual = read((line for line in ["owl-axioms: an axiom\n", "owl-axioms: another axiom\n"]))
         expected = OboDocument()
         expected.header.owl_axioms = ["an axiom", "another axiom"]
         self.assertDocumentEquals(actual, expected)

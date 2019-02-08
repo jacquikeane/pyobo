@@ -154,6 +154,53 @@ class TestLexer(unittest.TestCase):
                                    ])
         self.assertEqualsByContent(actual, expected)
 
+    def test_should_recognise_def_tag(self):
+        self.under_test.in_header = False
+        actual = self.tokenize('''def: "some \\"value" [SOMEID "description", ANOTHERID] {qualifier="quality"}''')
+        expected = self.to_tokens([["DEF_TAG", "def", 1, 0],
+                                   ["TAG_VALUE_SEPARATOR", ":", 1, 3],
+                                   ["TAG_VALUE", "some \"value", 1, 5],
+                                   ["XREF_LIST_START", "[", 1, 20],
+                                   ["XREF", "SOMEID", 1, 21],
+                                   ["XREF_DESCRIPTION", "description", 1, 28],
+                                   ["XREF_LIST_SEPARATOR", ",", 1, 41],
+                                   ["XREF", "ANOTHERID", 1, 43],
+                                   ["XREF_LIST_END", "]", 1, 52],
+                                   ["QUALIFIER_BLOCK_START", "{", 1, 54],
+                                   ["QUALIFIER_ID", "qualifier", 1, 55],
+                                   ["QUALIFIER_ID_VALUE_SEPARATOR", "=", 1, 64],
+                                   ["QUALIFIER_VALUE", "quality", 1, 65],
+                                   ["QUALIFIER_BLOCK_END", "}", 1, 74],
+                                   ])
+        self.assertEqualsByContent(actual, expected)
+
+    def test_should_recognise_xref_block_with_escaped_characters(self):
+        self.under_test.in_header = False
+        self.lexer.begin(OboLexerBuilder.DEF_VALUE)
+        actual = self.tokenize(
+            '''[http:/www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=search&db=pubmed&term=SILVERMAN+SK[au\\]&dispmax=50]''')
+        expected = self.to_tokens([
+            ["XREF_LIST_START", "[", 1, 0],
+            ["XREF",
+             "http:/www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=search&db=pubmed&term=SILVERMAN+SK[au]&dispmax=50", 1,
+             1],
+            ["XREF_LIST_END", "]", 1, 100],
+        ])
+        self.assertEqualsByContent(actual, expected)
+
+    def test_should_recognise_xref_tag(self):
+        self.under_test.in_header = False
+        actual = self.tokenize(
+            '''xref: reactome:R-HSA-71593 "((1,6)-alpha-glucosyl)poly((1,4)-alpha-glucosyl)glycogenin => poly{(1,4)-alpha-glucosyl} glycogenin + alpha-D-glucose"''')
+        expected = self.to_tokens([["XREF_TAG", "xref", 1, 0],
+                                   ["TAG_VALUE_SEPARATOR", ":", 1, 4],
+                                   ["XREF", "reactome:R-HSA-71593", 1, 6],
+                                   ["XREF_DESCRIPTION",
+                                    "((1,6)-alpha-glucosyl)poly((1,4)-alpha-glucosyl)glycogenin => poly{(1,4)-alpha-glucosyl} glycogenin + alpha-D-glucose",
+                                    1, 27],
+                                   ])
+        self.assertEqualsByContent(actual, expected)
+
     def test_should_recognise_single_qualifier_without_comments(self):
         self.under_test.in_header = False
         actual = self.tokenize("""range: BFO:0000004 {http://purl.obolibrary.org/obo/IAO_0000116="This is """

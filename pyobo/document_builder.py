@@ -1,4 +1,4 @@
-from pyobo.obo_document import OboDocument
+from pyobo.obo_document import OboDocument, OboXref, OboDef
 
 
 # todo remove print statements and simplify callbacks.
@@ -8,12 +8,28 @@ class OboDocumentBuilder:
         self.document = OboDocument()
         self.scope = self.document.header
         self.qualifiers = {}
+        self.xrefs = []
 
     def term(self):
         self.scope = self.document.add_term()
 
+    def add_xref(self, xref, description):
+        self.xrefs.append(OboXref(xref, description))
+
+    def def_tag_value(self, value):
+        definition = OboDef(value, self.xrefs)
+        self.xrefs = []
+        self.scope.def_ = definition
+        self._process_qualifiers("def_")
+
     def typedef(self):
         self.scope = self.document.add_typedef()
+
+    def xref_tag(self):
+        if len(self.xrefs) != 1:
+            raise OboDocumentBuildingError.expected_only_one_xref(self.xrefs)
+        self.scope.xref = self.xrefs.pop()
+        self._process_qualifiers("xref")
 
     def tag_value_pair(self, tag, value):
         attribute = OboDocumentBuilder._extract_attribute(tag)
@@ -77,6 +93,12 @@ class OboDocumentBuildingError(Exception):
     def invalid_tag_pair_merge(tag, current, new):
         result = OboDocumentBuildingError()
         result.message = "Tag %s defined more than once with different values (%s and %s)" % (tag, current, new)
+        return result
+
+    @staticmethod
+    def expected_only_one_xref(xrefs):
+        result = OboDocumentBuildingError()
+        result.message = "Tag xref expects an single xref defined, found %s" % xrefs
         return result
 
     @staticmethod
