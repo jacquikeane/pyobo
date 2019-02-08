@@ -53,8 +53,8 @@ class TestParser(unittest.TestCase):
         mock_callback = Mock()
         builder = OboLexerBuilder()
         builder.in_header = False
-        OboParser(builder.new_lexer(), mock_callback).parse_line("""def: "Catalysis of the reaction!: {}2'-phospho-[ligated tRNA] + NAD+ = mature tRNA + ADP ribose 1'',2''-phosphate + nicotinamide + H2O. This reaction is the transfer of the splice junction 2-phosphate from ligated tRNA to NAD+ to produce ADP-ribose 1'-2' cyclic phosphate." [EC:2.7.1.160, PMID:9148937]
-""")
+        OboParser(builder.new_lexer(), mock_callback).parse_line(
+            """def: "Catalysis of the reaction!: {}2'-phospho-[ligated tRNA] + NAD+ = mature tRNA + ADP ribose 1'',2''-phosphate + nicotinamide + H2O. This reaction is the transfer of the splice junction 2-phosphate from ligated tRNA to NAD+ to produce ADP-ribose 1'-2' cyclic phosphate." [EC:2.7.1.160, PMID:9148937]\n""")
         self.assertEquals(mock_callback.mock_calls, [
             call.add_xref('EC:2.7.1.160', None),
             call.add_xref('PMID:9148937', None),
