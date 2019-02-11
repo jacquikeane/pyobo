@@ -1,4 +1,4 @@
-from pyobo.obo_document import OboDocument, OboTerm, OboTypedef
+from pyobo.obo_document import OboDocument, OboTerm, OboTypedef, OboDef, OboXref
 from pyobo.obo_reader import read
 from pyobo.tests.document_assert import DocumentAsserter
 
@@ -13,8 +13,7 @@ class TestReader(DocumentAsserter):
             "id: GO:0015137\n",
             "name: citrate transmembrane transporter activity\n",
             "namespace: molecular_function\n",
-            '''def: "Enables the transfer of citrate, 2-hydroxy-1,2,3-propanetricarboyxlate, '''
-            '''from one side of a membrane to the other." [GOC:ai]\n''',
+            '''def: "Enables the transfer of citrate from one side of a membrane to the other." [GOC:ai]\n''',
             """synonym: "tricarboxylate transport protein" RELATED [] {comment="WIkipedia:Mitochondrial_carrier"}\n""",
             'xref: reactome:R-HSA-433104 "NACT co-transports trivalent citrate and a sodium ion"\n',
             "is_a: GO:0015142 ! tricarboxylic acid transmembrane transporter activity\n",
@@ -36,10 +35,10 @@ class TestReader(DocumentAsserter):
         term.id = "GO:0015137"
         term.name = "citrate transmembrane transporter activity"
         term.namespace = "molecular_function"
-        term.def_ = '''"Enables the transfer of citrate, 2-hydroxy-1,2,3-propanetricarboyxlate, ''' \
-                    + '''from one side of a membrane to the other." [GOC:ai]'''
+        term.def_ = OboDef('''Enables the transfer of citrate from one side of a membrane to the other.''',
+                           [OboXref("GOC:ai", None)])
         term.synonym = ['"tricarboxylate transport protein" RELATED []']
-        term.xref = ['reactome:R-HSA-433104 "NACT co-transports trivalent citrate and a sodium ion"']
+        term.xref = OboXref('reactome:R-HSA-433104', "NACT co-transports trivalent citrate and a sodium ion")
         term.is_a = ["GO:0015142", "GO:0042895"]
         term.relationship = ["part_of GO:0015746"]
         term.is_obsolete = True
@@ -49,7 +48,7 @@ class TestReader(DocumentAsserter):
         typedef.id = "ends_during"
         typedef.name = "ends_during"
         typedef.namespace = "external"
-        typedef.xref = ["RO:0002093"]
+        typedef.xref = OboXref("RO:0002093", None)
         expected.terms = [term]
         expected.typedefs = [typedef]
         self.assertDocumentEquals(actual, expected)

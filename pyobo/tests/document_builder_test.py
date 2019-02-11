@@ -1,7 +1,7 @@
 from functools import partial
 
 from pyobo.document_builder import OboDocumentBuilder, OboDocumentBuildingError
-from pyobo.obo_document import OboDocument, OboTerm, OboTypedef
+from pyobo.obo_document import OboDocument, OboTerm, OboTypedef, OboDef, OboXref
 from pyobo.tests.document_assert import DocumentAsserter
 
 
@@ -116,6 +116,33 @@ class TestDocBuilding(DocumentAsserter):
             term = OboTerm()
             term.data_version = ["world"]
             term._qualifiers["data_version"] = {"q1": "v1"}
+            return [term]
+
+        expected = self.expected(terms=expected_terms)
+        self.assertDocuments(expected)
+
+    def test_should_support_def_tag_with_xrefs(self):
+        self.under_test.term()
+        self.under_test.add_xref('GOC:ai', None),
+        self.under_test.add_xref('HELLO', 'WORLD'),
+        self.under_test.def_tag_value("some value")
+
+        def expected_terms():
+            term = OboTerm()
+            term.def_ = OboDef("some value", [OboXref('GOC:ai', None), OboXref('HELLO', 'WORLD')])
+            return [term]
+
+        expected = self.expected(terms=expected_terms)
+        self.assertDocuments(expected)
+
+    def test_should_support_xref_tag(self):
+        self.under_test.term()
+        self.under_test.add_xref('HELLO', 'WORLD'),
+        self.under_test.xref_tag()
+
+        def expected_terms():
+            term = OboTerm()
+            term.xref = OboXref('HELLO', 'WORLD')
             return [term]
 
         expected = self.expected(terms=expected_terms)

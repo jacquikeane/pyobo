@@ -31,6 +31,47 @@ class OboParser:
         """obo_file_line : TAG TAG_VALUE_SEPARATOR TAG_VALUE qualifier_block"""
         self.callback.tag_value_pair(p[1], p[3])
 
+    def p_obo_file_line_def_tag_value_pair_with_qualifiers(self, p):
+        """obo_file_line : DEF_TAG TAG_VALUE_SEPARATOR TAG_VALUE xref_block qualifier_block"""
+        self.callback.def_tag_value(p[3])
+
+    def p_obo_file_line_def_tag_value_pair_without_qualifiers(self, p):
+        """obo_file_line : DEF_TAG TAG_VALUE_SEPARATOR TAG_VALUE xref_block"""
+        self.callback.def_tag_value(p[3])
+
+    def p_obo_file_line_xref_tag_value_pair_with_qualifiers(self, p):
+        """obo_file_line : XREF_TAG TAG_VALUE_SEPARATOR xreference qualifier_block"""
+        self.callback.xref_tag()
+
+    def p_obo_file_line_xref_tag_value_pair_without_qualifiers(self, p):
+        """obo_file_line : XREF_TAG TAG_VALUE_SEPARATOR xreference"""
+        self.callback.xref_tag()
+
+    def p_xref_block(self, p):
+        """xref_block : XREF_LIST_START xref_list XREF_LIST_END"""
+        pass
+
+    def p_xref_block_empty(self, p):
+        """xref_block : XREF_LIST_START XREF_LIST_END"""
+        pass
+
+    def p_xref_list_single(self, p):
+        """xref_list : xreference"""
+        pass
+
+    def p_xref_list_multiple(self, p):
+        """xref_list : xref_list XREF_LIST_SEPARATOR xreference"""
+        pass
+
+    def p_xref_with_no_description(self, p):
+        """xreference : XREF"""
+        self.callback.add_xref(p[1], None)
+
+    def p_xref_with_description(self, p):
+        """xreference : XREF XREF_DESCRIPTION"""
+        self.callback.add_xref(p[1], p[2])
+
+
     def p_qualifier_block(self, p):
         """qualifier_block : QUALIFIER_BLOCK_START qualifier_list QUALIFIER_BLOCK_END"""
         pass

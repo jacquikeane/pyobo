@@ -123,6 +123,24 @@ TYPEDEF_MULTI_VALUE_TAGS = ['alt_id',
                             'expand_expression_to']
 
 
+class OboXref(Base):
+    def __init__(self, xref, description):
+        self.xref = xref
+        self.description = description
+
+    def __eq__(self, other):
+        return self.description == other.description and self.xref == other.xref
+
+
+class OboDef(Base):
+
+    def __init__(self, value, xrefs):
+        self.value = value
+        self.xrefs = xrefs
+
+    def __eq__(self, other):
+        return self.value == other.value and self.xrefs == other.xrefs
+
 class OboHeader(Base):
 
     def __init__(self):
